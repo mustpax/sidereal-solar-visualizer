@@ -2,6 +2,8 @@
 
 An interactive educational visualization that explains why a sidereal day (23h 56m 4s) differs from a solar day (24h 00m 0s).
 
+![Screenshot of the Sidereal vs Solar Day Visualizer](screenshot.jpg)
+
 ## Features
 
 ### View 1: Overhead Orbital View
