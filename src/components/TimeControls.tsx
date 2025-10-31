@@ -62,15 +62,18 @@ export function TimeControls() {
       {/* Speed Controls */}
       <div className="control-row speed-controls">
         <label>Speed:</label>
-        {([1, 10, 100, 1000] as PlaySpeed[]).map((speed) => (
-          <button
-            key={speed}
-            onClick={() => handleSpeedChange(speed)}
-            className={playSpeed === speed ? 'active' : ''}
-          >
-            {speed}x
-          </button>
-        ))}
+        {([1, 100, 10000, 1000000] as PlaySpeed[]).map((speed) => {
+          const label = speed === 10000 ? '10,000' : speed === 1000000 ? '1 million' : speed.toString();
+          return (
+            <button
+              key={speed}
+              onClick={() => handleSpeedChange(speed)}
+              className={playSpeed === speed ? 'active' : ''}
+            >
+              {label}x
+            </button>
+          );
+        })}
       </div>
 
       {/* Time Slider */}

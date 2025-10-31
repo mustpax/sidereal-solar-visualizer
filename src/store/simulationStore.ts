@@ -7,7 +7,7 @@ import {
   deg2rad,
 } from '../utils/astronomy';
 
-export type PlaySpeed = 1 | 10 | 100 | 1000;
+export type PlaySpeed = 1 | 100 | 10000 | 1000000;
 
 export interface LocationState {
   latitude: number; // radians
@@ -92,9 +92,9 @@ export const useSimulationStore = create<SimulationState>((set, get) => ({
   // Initial state
   currentTime: 0,
   isPlaying: false,
-  playSpeed: 100,
+  playSpeed: 10000,
   lastUpdateTimestamp: Date.now(),
-  location: PRESET_LOCATIONS['Greenwich, UK'],
+  location: PRESET_LOCATIONS['Equator'],
   options: DEFAULT_OPTIONS,
   markers: {
     lastSiderealReturn: null,

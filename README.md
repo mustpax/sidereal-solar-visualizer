@@ -23,7 +23,7 @@ An interactive educational visualization that explains why a sidereal day (23h 5
 - Drift counter showing accumulated difference
 
 ### Interactive Controls
-- Play/Pause with variable speed (1x, 10x, 100x, 1000x)
+- Play/Pause with variable speed (1x, 100x, 10,000x, 1 millionx)
 - Time slider to scrub through simulation
 - Jump to next sidereal or solar day
 - Quick jump buttons (+1 hour, +1 day, +1 week)
