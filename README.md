@@ -75,6 +75,10 @@ Coordinate transformations:
 - Equatorial → Horizontal (Alt/Az)
 - GMST and LST calculations
 
+## Project Generation
+
+This project was generated using [Claude Code](https://claude.com/claude-code) with the prompt specification from [prompt.md](./prompt.md).
+
 ## License
 
 MIT
