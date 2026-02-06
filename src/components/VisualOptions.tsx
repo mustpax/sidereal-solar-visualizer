@@ -15,24 +15,6 @@ export function VisualOptions() {
         <label>
           <input
             type="checkbox"
-            checked={options.showOrbitTrail}
-            onChange={() => handleToggle('showOrbitTrail')}
-          />
-          Orbit trail
-        </label>
-
-        <label>
-          <input
-            type="checkbox"
-            checked={options.showRotationTicks}
-            onChange={() => handleToggle('showRotationTicks')}
-          />
-          Rotation ticks
-        </label>
-
-        <label>
-          <input
-            type="checkbox"
             checked={options.showLabels}
             onChange={() => handleToggle('showLabels')}
           />
@@ -51,31 +33,10 @@ export function VisualOptions() {
         <label>
           <input
             type="checkbox"
-            checked={options.showEcliptic}
-            onChange={() => handleToggle('showEcliptic')}
-          />
-          Ecliptic
-        </label>
-
-        <label>
-          <input
-            type="checkbox"
-            checked={options.showCelestialEquator}
-            onChange={() => handleToggle('showCelestialEquator')}
-          />
-          Celestial equator
-        </label>
-      </div>
-
-      <h4>Accessibility</h4>
-      <div className="options-grid">
-        <label>
-          <input
-            type="checkbox"
             checked={options.highContrast}
             onChange={() => handleToggle('highContrast')}
           />
-          High contrast mode
+          High contrast
         </label>
 
         <label>

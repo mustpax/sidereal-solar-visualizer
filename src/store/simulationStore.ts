@@ -1,13 +1,12 @@
 import { create } from 'zustand';
 import {
-  timeToNextSiderealDay,
-  timeToNextSolarDay,
   SIDEREAL_DAY_SECONDS,
   SOLAR_DAY_SECONDS,
   deg2rad,
 } from '../utils/astronomy';
 
-export type PlaySpeed = 1 | 100 | 10000 | 1000000;
+export type StepMode = 'solar' | 'sidereal';
+export type DaySpeed = 1 | 5 | 20;
 
 export interface LocationState {
   latitude: number; // radians
@@ -16,28 +15,20 @@ export interface LocationState {
 }
 
 export interface VisualOptions {
-  showOrbitTrail: boolean;
-  showRotationTicks: boolean;
   showLabels: boolean;
   showGrid: boolean;
-  showEcliptic: boolean;
-  showCelestialEquator: boolean;
-  showHorizonShading: boolean;
   highContrast: boolean;
   reduceMotion: boolean;
 }
 
-export interface SimulationMarkers {
-  lastSiderealReturn: number | null;
-  lastSolarReturn: number | null;
-  showMarkers: boolean;
-}
-
 interface SimulationState {
-  // Time state
-  currentTime: number; // seconds from start
+  // Day-stepping state
+  timeOfDay: number; // seconds within a day (0-86400), set by clock dial
+  dayCount: number; // integer day counter
+  stepMode: StepMode; // solar or sidereal stepping
+  daySpeed: DaySpeed; // days per real second
+  accumulator: number; // fractional day accumulator for smooth stepping
   isPlaying: boolean;
-  playSpeed: PlaySpeed;
   lastUpdateTimestamp: number;
 
   // Location
@@ -46,23 +37,16 @@ interface SimulationState {
   // Visual options
   options: VisualOptions;
 
-  // Markers for snap points
-  markers: SimulationMarkers;
-
   // Actions
   play: () => void;
   pause: () => void;
-  setPlaySpeed: (speed: PlaySpeed) => void;
-  setTime: (time: number) => void;
+  setTimeOfDay: (time: number) => void;
+  setStepMode: (mode: StepMode) => void;
+  setDaySpeed: (speed: DaySpeed) => void;
   tick: () => void;
-  jumpToNextSidereal: () => void;
-  jumpToNextSolar: () => void;
   reset: () => void;
   setLocation: (lat: number, lon: number, name: string) => void;
   updateOptions: (options: Partial<VisualOptions>) => void;
-  toggleMarkers: () => void;
-  markSiderealReturn: () => void;
-  markSolarReturn: () => void;
 }
 
 // Preset locations
@@ -77,46 +61,53 @@ export const PRESET_LOCATIONS = {
 };
 
 const DEFAULT_OPTIONS: VisualOptions = {
-  showOrbitTrail: true,
-  showRotationTicks: true,
   showLabels: true,
   showGrid: true,
-  showEcliptic: true,
-  showCelestialEquator: true,
-  showHorizonShading: true,
   highContrast: false,
   reduceMotion: false,
 };
 
+/**
+ * Compute effective simulation time from dayCount, timeOfDay, and stepMode.
+ * Each animation frame shows the same moment (timeOfDay) one day later.
+ * The step size is either a solar day or sidereal day.
+ */
+export function getEffectiveTime(dayCount: number, timeOfDay: number, stepMode: StepMode): number {
+  const stepSize = stepMode === 'solar' ? SOLAR_DAY_SECONDS : SIDEREAL_DAY_SECONDS;
+  return dayCount * stepSize + timeOfDay;
+}
+
 export const useSimulationStore = create<SimulationState>((set, get) => ({
   // Initial state
-  currentTime: 0,
+  timeOfDay: 43200, // noon
+  dayCount: 0,
+  stepMode: 'solar',
+  daySpeed: 1,
+  accumulator: 0,
   isPlaying: false,
-  playSpeed: 10000,
   lastUpdateTimestamp: Date.now(),
   location: PRESET_LOCATIONS['Equator'],
   options: DEFAULT_OPTIONS,
-  markers: {
-    lastSiderealReturn: null,
-    lastSolarReturn: null,
-    showMarkers: false,
-  },
 
   // Actions
   play: () => {
-    set({ isPlaying: true, lastUpdateTimestamp: Date.now() });
+    set({ isPlaying: true, accumulator: 0, lastUpdateTimestamp: Date.now() });
   },
 
   pause: () => {
     set({ isPlaying: false });
   },
 
-  setPlaySpeed: (speed: PlaySpeed) => {
-    set({ playSpeed: speed });
+  setTimeOfDay: (time: number) => {
+    set({ timeOfDay: Math.max(0, Math.min(86400, time)) });
   },
 
-  setTime: (time: number) => {
-    set({ currentTime: Math.max(0, time) });
+  setStepMode: (mode: StepMode) => {
+    set({ stepMode: mode });
+  },
+
+  setDaySpeed: (speed: DaySpeed) => {
+    set({ daySpeed: speed });
   },
 
   tick: () => {
@@ -125,52 +116,32 @@ export const useSimulationStore = create<SimulationState>((set, get) => ({
 
     const now = Date.now();
     const realDelta = (now - state.lastUpdateTimestamp) / 1000; // real seconds elapsed
-    const simulatedDelta = realDelta * state.playSpeed;
 
-    const newTime = state.currentTime + simulatedDelta;
+    // Accumulate fractional days
+    const newAccumulator = state.accumulator + realDelta * state.daySpeed;
+    const wholeDays = Math.floor(newAccumulator);
 
-    // Check for sidereal day completion
-    const oldSiderealDays = Math.floor(state.currentTime / SIDEREAL_DAY_SECONDS);
-    const newSiderealDays = Math.floor(newTime / SIDEREAL_DAY_SECONDS);
-    if (newSiderealDays > oldSiderealDays && state.markers.showMarkers) {
-      set({ markers: { ...state.markers, lastSiderealReturn: newTime } });
+    if (wholeDays > 0) {
+      set({
+        dayCount: state.dayCount + wholeDays,
+        accumulator: newAccumulator - wholeDays,
+        lastUpdateTimestamp: now,
+      });
+    } else {
+      set({
+        accumulator: newAccumulator,
+        lastUpdateTimestamp: now,
+      });
     }
-
-    // Check for solar day completion
-    const oldSolarDays = Math.floor(state.currentTime / SOLAR_DAY_SECONDS);
-    const newSolarDays = Math.floor(newTime / SOLAR_DAY_SECONDS);
-    if (newSolarDays > oldSolarDays && state.markers.showMarkers) {
-      set({ markers: { ...state.markers, lastSolarReturn: newTime } });
-    }
-
-    set({
-      currentTime: newTime,
-      lastUpdateTimestamp: now,
-    });
-  },
-
-  jumpToNextSidereal: () => {
-    const state = get();
-    const timeToNext = timeToNextSiderealDay(state.currentTime);
-    set({ currentTime: state.currentTime + timeToNext });
-  },
-
-  jumpToNextSolar: () => {
-    const state = get();
-    const timeToNext = timeToNextSolarDay(state.currentTime);
-    set({ currentTime: state.currentTime + timeToNext });
   },
 
   reset: () => {
     set({
-      currentTime: 0,
+      dayCount: 0,
+      timeOfDay: 43200,
+      accumulator: 0,
       isPlaying: false,
       lastUpdateTimestamp: Date.now(),
-      markers: {
-        lastSiderealReturn: null,
-        lastSolarReturn: null,
-        showMarkers: false,
-      },
     });
   },
 
@@ -184,28 +155,5 @@ export const useSimulationStore = create<SimulationState>((set, get) => ({
     set((state) => ({
       options: { ...state.options, ...options },
     }));
-  },
-
-  toggleMarkers: () => {
-    set((state) => ({
-      markers: {
-        ...state.markers,
-        showMarkers: !state.markers.showMarkers,
-      },
-    }));
-  },
-
-  markSiderealReturn: () => {
-    const state = get();
-    set({
-      markers: { ...state.markers, lastSiderealReturn: state.currentTime },
-    });
-  },
-
-  markSolarReturn: () => {
-    const state = get();
-    set({
-      markers: { ...state.markers, lastSolarReturn: state.currentTime },
-    });
   },
 }));

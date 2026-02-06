@@ -2,7 +2,8 @@ import { useEffect } from 'react';
 import { useSimulationStore } from './store/simulationStore';
 import { OrbitalView } from './components/OrbitalView';
 import { SkyView } from './components/SkyView';
-import { TimeControls } from './components/TimeControls';
+import { TimeOfDayClock } from './components/TimeOfDayClock';
+import { AnimationControls } from './components/AnimationControls';
 import { LocationPicker } from './components/LocationPicker';
 import { VisualOptions } from './components/VisualOptions';
 import './App.css';
@@ -56,7 +57,8 @@ function App() {
         </div>
 
         <div className="controls-container">
-          <TimeControls />
+          <TimeOfDayClock />
+          <AnimationControls />
           <LocationPicker />
           <VisualOptions />
         </div>

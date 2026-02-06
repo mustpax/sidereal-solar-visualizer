@@ -1,14 +1,14 @@
 import { useEffect, useRef } from 'react';
-import { useSimulationStore } from '../store/simulationStore';
+import { useSimulationStore, getEffectiveTime } from '../store/simulationStore';
 import {
   calculateEarthState,
   calculateGMST,
   calculateLST,
   eclipticToEquatorial,
   equatorialToHorizontal,
-  formatSiderealTime,
-  formatTime,
   deg2rad,
+  SIDEREAL_DAY_SECONDS,
+  SOLAR_DAY_SECONDS,
 } from '../utils/astronomy';
 import { BRIGHT_STARS, getStarSize, getStarOpacity } from '../utils/starCatalog';
 
@@ -17,7 +17,9 @@ const DOME_RADIUS = 250;
 
 export function SkyView() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const { currentTime, location, options } = useSimulationStore();
+  const { dayCount, timeOfDay, stepMode, location, options } = useSimulationStore();
+
+  const effectiveTime = getEffectiveTime(dayCount, timeOfDay, stepMode);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -42,8 +44,10 @@ export function SkyView() {
     ctx.fill();
 
     // Get current state
-    const earthState = calculateEarthState(currentTime);
-    const gmst = calculateGMST(currentTime);
+    const earthState = calculateEarthState(effectiveTime);
+    // initialGMST = PI so that t=0 is midnight (Sun hour angle = PI)
+    // and t=43200 (noon) puts the Sun on the meridian (H ≈ 0).
+    const gmst = calculateGMST(effectiveTime, Math.PI);
     const lst = calculateLST(gmst, location.longitude);
 
     // Draw horizon circle
@@ -88,7 +92,6 @@ export function SkyView() {
       if (horizontal.altitude < 0) return;
 
       // Project to 2D using stereographic-like projection
-      // altitude 90° = center, altitude 0° = edge
       const r = DOME_RADIUS * (1 - horizontal.altitude / (Math.PI / 2));
       const angle = horizontal.azimuth - Math.PI / 2; // 0 = North = up
 
@@ -194,13 +197,20 @@ export function SkyView() {
     }
 
     ctx.restore();
-  }, [currentTime, location, options]);
+  }, [effectiveTime, location, options]);
 
-  // Calculate times for display
-  const siderealTime = formatSiderealTime(currentTime);
-  const solarTime = formatTime(currentTime);
-  const driftSeconds = currentTime - (currentTime / 86164) * 86400;
-  const driftMinutes = (driftSeconds / 60).toFixed(1);
+  // Calculate day count and drift for display
+  const driftPerDay = SOLAR_DAY_SECONDS - SIDEREAL_DAY_SECONDS; // ~236 seconds
+  const totalDriftSeconds = dayCount * driftPerDay;
+  const driftMinutes = (totalDriftSeconds / 60).toFixed(1);
+
+  // Format time of day for display
+  const totalMinutes = Math.floor(timeOfDay / 60);
+  let hours = Math.floor(totalMinutes / 60) % 24;
+  const minutes = totalMinutes % 60;
+  const ampm = hours >= 12 ? 'PM' : 'AM';
+  hours = hours % 12 || 12;
+  const timeStr = `${hours}:${String(minutes).padStart(2, '0')} ${ampm}`;
 
   return (
     <div className="sky-view">
@@ -216,19 +226,20 @@ export function SkyView() {
       />
       <div className="time-display">
         <div className="clock">
-          <strong>Solar Time:</strong> {solarTime}
+          <strong>Day {dayCount}</strong> at {timeStr}
         </div>
         <div className="clock">
-          <strong>Sidereal Time:</strong> {siderealTime}
+          <strong>Mode:</strong> {stepMode === 'solar' ? 'Solar' : 'Sidereal'}
         </div>
         <div className="drift">
-          <strong>Drift:</strong> {driftMinutes} minutes ahead
+          <strong>Drift:</strong> {driftMinutes} min
         </div>
       </div>
       <div className="view-description">
         <p>
-          Stars sweep at the <strong>sidereal rate</strong>. The Sun moves slightly slower. The
-          drift counter shows how much sidereal time is ahead of solar time.
+          Each step advances one {stepMode === 'solar' ? 'solar' : 'sidereal'} day.
+          In <strong>solar mode</strong>, the Sun stays put while stars drift ~4 min/day.
+          In <strong>sidereal mode</strong>, stars stay put while the Sun shifts.
         </p>
       </div>
     </div>

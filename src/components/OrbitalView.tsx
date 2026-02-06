@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { useSimulationStore } from '../store/simulationStore';
+import { useSimulationStore, getEffectiveTime } from '../store/simulationStore';
 import { calculateEarthState, rad2deg } from '../utils/astronomy';
 
 const CANVAS_SIZE = 600;
@@ -10,7 +10,9 @@ const LOCATION_PIN_LENGTH = 8;
 
 export function OrbitalView() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const { currentTime, options } = useSimulationStore();
+  const { dayCount, timeOfDay, stepMode, options } = useSimulationStore();
+
+  const effectiveTime = getEffectiveTime(dayCount, timeOfDay, stepMode);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -27,18 +29,16 @@ export function OrbitalView() {
     ctx.translate(CANVAS_SIZE / 2, CANVAS_SIZE / 2);
 
     // Get Earth state
-    const earthState = calculateEarthState(currentTime);
+    const earthState = calculateEarthState(effectiveTime);
 
-    // Draw orbit path
-    if (options.showOrbitTrail) {
-      ctx.strokeStyle = options.highContrast ? '#ffffff' : '#666666';
-      ctx.lineWidth = 1;
-      ctx.setLineDash([5, 5]);
-      ctx.beginPath();
-      ctx.arc(0, 0, ORBIT_RADIUS, 0, Math.PI * 2);
-      ctx.stroke();
-      ctx.setLineDash([]);
-    }
+    // Draw orbit path (always shown)
+    ctx.strokeStyle = options.highContrast ? '#ffffff' : '#666666';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([5, 5]);
+    ctx.beginPath();
+    ctx.arc(0, 0, ORBIT_RADIUS, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.setLineDash([]);
 
     // Draw reference line to fixed star direction (at angle 0)
     ctx.strokeStyle = options.highContrast ? '#00ffff' : '#4488ff';
@@ -94,14 +94,15 @@ export function OrbitalView() {
     ctx.translate(earthX, earthY);
 
     // Draw Earth as a disk with asymmetric pattern
-    // Blue wedge
     ctx.fillStyle = options.highContrast ? '#0088ff' : '#4488ff';
     ctx.beginPath();
     ctx.arc(0, 0, EARTH_RADIUS, 0, Math.PI * 2);
     ctx.fill();
 
-    // Rotate Earth by sidereal angle
-    ctx.rotate(-earthState.siderealAngle); // negative for counter-clockwise
+    // Rotate Earth by sidereal angle. Positive rotation = clockwise on screen,
+    // matching the clockwise orbit (canvas y-down). This gives the correct
+    // solar day rate (ω_s - ω_o) so the pin stays aligned with the Sun at noon.
+    ctx.rotate(earthState.siderealAngle + Math.PI / 2);
 
     // Draw green checker pattern (asymmetric marker)
     ctx.fillStyle = options.highContrast ? '#00ff00' : '#44ff88';
@@ -112,7 +113,7 @@ export function OrbitalView() {
     ctx.fill();
 
     // Draw small checker squares for more visible rotation
-    ctx.fillStyle = options.highContrast ? '#ffffff' : '#ffffff';
+    ctx.fillStyle = '#ffffff';
     ctx.fillRect(-3, -8, 6, 3);
     ctx.fillRect(-3, 5, 6, 3);
 
@@ -134,7 +135,6 @@ export function OrbitalView() {
 
     // Draw angle labels
     if (options.showLabels) {
-      // Sidereal angle label
       ctx.save();
       ctx.translate(earthX, earthY);
       ctx.fillStyle = options.highContrast ? '#ffffff' : '#333333';
@@ -142,38 +142,13 @@ export function OrbitalView() {
       const siderealDeg = rad2deg(earthState.siderealAngle).toFixed(1);
       ctx.fillText(`${siderealDeg}°`, EARTH_RADIUS + 10, -10);
 
-      // Orbit angle label
       const orbitDeg = rad2deg(earthState.orbitAngle).toFixed(1);
       ctx.fillText(`orbit: ${orbitDeg}°`, EARTH_RADIUS + 10, 5);
       ctx.restore();
     }
 
-    // Draw rotation tick marks if enabled
-    if (options.showRotationTicks) {
-      ctx.save();
-      ctx.translate(earthX, earthY);
-
-      // Show past rotation positions
-      const tickCount = 8;
-      for (let i = 0; i < tickCount; i++) {
-        const tickAngle = (i * Math.PI * 2) / tickCount;
-        const alpha = 0.3 - (i / tickCount) * 0.2;
-        ctx.strokeStyle = `rgba(255, 51, 51, ${alpha})`;
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        const x1 = Math.cos(tickAngle) * EARTH_RADIUS;
-        const y1 = Math.sin(tickAngle) * EARTH_RADIUS;
-        const x2 = Math.cos(tickAngle) * (EARTH_RADIUS + 5);
-        const y2 = Math.sin(tickAngle) * (EARTH_RADIUS + 5);
-        ctx.moveTo(x1, y1);
-        ctx.lineTo(x2, y2);
-        ctx.stroke();
-      }
-      ctx.restore();
-    }
-
     ctx.restore();
-  }, [currentTime, options]);
+  }, [effectiveTime, options]);
 
   return (
     <div className="orbital-view">
