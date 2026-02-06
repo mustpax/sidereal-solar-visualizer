@@ -420,3 +420,71 @@ footer {
 .app.embed .animation-controls h3 {
   display: none;
 }
+
+/* Embed both mode */
+.app.embed-both .main-content {
+  grid-template-columns: 1fr;
+}
+
+.app.embed-both .views-container {
+  flex-direction: row;
+  gap: 10px;
+  flex: 1;
+  min-height: 0;
+  justify-content: center;
+}
+
+.app.embed-both .view-wrapper {
+  flex: none;
+}
+
+.app.embed-both .view-wrapper canvas {
+  width: min(calc(100vh - 70px), calc(50vw - 15px));
+  height: min(calc(100vh - 70px), calc(50vw - 15px));
+}
+
+/* Embed both control bar */
+.embed-both-controls {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 6px 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
+
+.embed-both-controls .step-mode-toggle {
+  display: flex;
+  border-radius: 4px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.embed-both-controls .step-mode-toggle button {
+  padding: 4px 12px;
+  font-size: 0.85rem;
+  border-radius: 0;
+  border: none;
+}
+
+.embed-both-controls .step-mode-toggle button:first-child {
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.embed-both-controls .playback-buttons {
+  display: flex;
+  gap: 4px;
+}
+
+.embed-both-controls .playback-buttons button {
+  padding: 4px 10px;
+  font-size: 1rem;
+  min-width: 36px;
+}
+
+.embed-both-controls .day-counter {
+  font-family: 'Monaco', monospace;
+  font-size: 0.9rem;
+  color: #aaa;
+}

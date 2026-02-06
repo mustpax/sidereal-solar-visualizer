@@ -6,13 +6,14 @@ import { TimeOfDayClock } from './components/TimeOfDayClock';
 import { AnimationControls } from './components/AnimationControls';
 import { LocationPicker } from './components/LocationPicker';
 import { VisualOptions } from './components/VisualOptions';
+import { EmbedBothControls } from './components/EmbedBothControls';
 import './App.css';
 
 function App() {
   const { tick, options } = useSimulationStore();
 
   const embedParam = new URLSearchParams(window.location.search).get('embed');
-  const embedMode = embedParam === 'overhead' || embedParam === 'local-sky' ? embedParam : null;
+  const embedMode = embedParam === 'overhead' || embedParam === 'local-sky' || embedParam === 'both' ? embedParam : null;
 
   // Animation loop
   useEffect(() => {
@@ -51,6 +52,8 @@ function App() {
         </header>
       )}
 
+      {embedMode === 'both' && <EmbedBothControls />}
+
       <div className="main-content">
         <div className="views-container">
           {embedMode !== 'local-sky' && (
@@ -65,12 +68,14 @@ function App() {
           )}
         </div>
 
-        <div className="controls-container">
-          <TimeOfDayClock />
-          <AnimationControls />
-          {!embedMode && <LocationPicker />}
-          {!embedMode && <VisualOptions />}
-        </div>
+        {embedMode !== 'both' && (
+          <div className="controls-container">
+            <TimeOfDayClock />
+            <AnimationControls />
+            {!embedMode && <LocationPicker />}
+            {!embedMode && <VisualOptions />}
+          </div>
+        )}
       </div>
 
       {!embedMode && (
