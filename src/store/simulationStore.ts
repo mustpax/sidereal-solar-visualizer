@@ -6,7 +6,7 @@ import {
 } from '../utils/astronomy';
 
 export type StepMode = 'solar' | 'sidereal';
-export type DaySpeed = 1 | 5 | 20;
+export type DaySpeed = 1 | 5 | 30 | 120 | 365;
 
 export interface LocationState {
   latitude: number; // radians
@@ -82,7 +82,7 @@ export const useSimulationStore = create<SimulationState>((set, get) => ({
   timeOfDay: 43200, // noon
   dayCount: 0,
   stepMode: 'solar',
-  daySpeed: 1,
+  daySpeed: 30,
   accumulator: 0,
   isPlaying: false,
   lastUpdateTimestamp: Date.now(),

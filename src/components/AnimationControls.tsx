@@ -54,14 +54,14 @@ export function AnimationControls() {
 
       {/* Speed presets */}
       <div className="control-row speed-controls">
-        <label>Speed:</label>
-        {([1, 5, 20] as DaySpeed[]).map((speed) => (
+        <label>Speed (days/s):</label>
+        {([1, 5, 30, 120, 365] as DaySpeed[]).map((speed) => (
           <button
             key={speed}
             onClick={() => setDaySpeed(speed)}
             className={daySpeed === speed ? 'active' : ''}
           >
-            {speed} day/s
+            {speed}
           </button>
         ))}
       </div>

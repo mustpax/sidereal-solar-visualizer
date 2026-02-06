@@ -244,12 +244,14 @@ button.active {
 .speed-controls {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
+  flex-wrap: wrap;
 }
 
 .speed-controls button {
-  padding: 6px 12px;
-  min-width: 50px;
+  padding: 6px 10px;
+  min-width: 40px;
+  font-size: 0.85rem;
 }
 
 input[type='range'] {
