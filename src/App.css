@@ -380,3 +380,43 @@ footer {
 .app.high-contrast .explanation strong {
   color: #ffff00;
 }
+
+/* Embed mode */
+.app.embed {
+  min-height: auto;
+  height: 100vh;
+  max-height: 100vh;
+  overflow: hidden;
+  padding: 10px;
+  background: transparent;
+  display: flex;
+  flex-direction: column;
+}
+
+.app.embed .main-content {
+  grid-template-columns: 1fr 280px;
+  gap: 12px;
+  flex: 1;
+  min-height: 0;
+}
+
+.app.embed .view-wrapper {
+  padding: 0;
+}
+
+.app.embed .view-wrapper canvas {
+  width: calc(100vh - 40px);
+  height: calc(100vh - 40px);
+  max-width: 100%;
+}
+
+.app.embed .view-wrapper h2,
+.app.embed .view-description,
+.app.embed .time-display {
+  display: none;
+}
+
+.app.embed .time-of-day-clock h3,
+.app.embed .animation-controls h3 {
+  display: none;
+}
