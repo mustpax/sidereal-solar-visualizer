@@ -8,9 +8,15 @@ export function EmbedBothControls() {
     reset,
     stepMode,
     setStepMode,
+    daySpeed,
     setDaySpeed,
     dayCount,
   } = useSimulationStore();
+
+  const handleSlow = () => {
+    setDaySpeed(1);
+    play();
+  };
 
   const handlePlay = () => {
     setDaySpeed(30);
@@ -41,12 +47,13 @@ export function EmbedBothControls() {
 
       <div className="playback-buttons">
         <button onClick={reset} title="Reset">⏮</button>
+        <button onClick={handleSlow} title="Slow (1 day/s)" className={isPlaying && daySpeed === 1 ? 'active' : ''}>🐢</button>
         {isPlaying ? (
           <button onClick={pause} title="Pause">⏸</button>
         ) : (
           <button onClick={handlePlay} title="Play">▶</button>
         )}
-        <button onClick={handleFastForward} title="Fast forward" className={isPlaying && useSimulationStore.getState().daySpeed === 120 ? 'active' : ''}>⏩</button>
+        <button onClick={handleFastForward} title="Fast forward" className={isPlaying && daySpeed === 120 ? 'active' : ''}>⏩</button>
       </div>
 
       <span className="day-counter">Day {dayCount}</span>
