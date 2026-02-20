@@ -392,7 +392,7 @@ footer {
   height: 100vh;
   max-height: 100vh;
   overflow: hidden;
-  padding: 10px;
+  padding: 20px;
   background: transparent;
   display: flex;
   flex-direction: column;
@@ -400,18 +400,32 @@ footer {
 
 .app.embed .main-content {
   grid-template-columns: 1fr 280px;
-  gap: 12px;
+  gap: 16px;
   flex: 1;
   min-height: 0;
+  max-width: none;
+}
+
+.app.embed .views-container {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .app.embed .view-wrapper {
   padding: 0;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .app.embed .view-wrapper canvas {
-  width: min(calc(100vh - 40px), 100%);
-  height: min(calc(100vh - 40px), 100%);
+  width: min(calc(100vh - 60px), calc(100vw - 340px));
+  height: min(calc(100vh - 60px), calc(100vw - 340px));
   aspect-ratio: 1;
 }
 
@@ -433,10 +447,11 @@ footer {
 
 .app.embed-both .views-container {
   flex-direction: row;
-  gap: 10px;
+  gap: 16px;
   flex: 1;
   min-height: 0;
   justify-content: center;
+  align-items: center;
 }
 
 .app.embed-both .view-wrapper {
@@ -444,8 +459,8 @@ footer {
 }
 
 .app.embed-both .view-wrapper canvas {
-  width: min(calc(100vh - 70px), calc(50vw - 15px));
-  height: min(calc(100vh - 70px), calc(50vw - 15px));
+  width: min(calc(100vh - 100px), calc(50vw - 30px));
+  height: min(calc(100vh - 100px), calc(50vw - 30px));
 }
 
 /* Embed both control bar */
