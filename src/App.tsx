@@ -13,7 +13,8 @@ function App() {
   const { tick, options } = useSimulationStore();
 
   const embedParam = new URLSearchParams(window.location.search).get('embed');
-  const embedMode = embedParam === 'overhead' || embedParam === 'local-sky' || embedParam === 'both' ? embedParam : null;
+  const normalizedEmbed = embedParam === 'sky' ? 'local-sky' : embedParam;
+  const embedMode = normalizedEmbed === 'overhead' || normalizedEmbed === 'local-sky' || normalizedEmbed === 'both' ? normalizedEmbed : null;
 
   // Animation loop
   useEffect(() => {
