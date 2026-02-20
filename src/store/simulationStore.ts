@@ -29,6 +29,7 @@ interface SimulationState {
   daySpeed: DaySpeed; // days per real second
   accumulator: number; // fractional day accumulator for smooth stepping
   animateWithinDay: boolean; // show intra-day rotation frames
+  stopAtDay: number | null; // auto-pause when dayCount reaches this value
   isPlaying: boolean;
   lastUpdateTimestamp: number;
 
@@ -98,6 +99,7 @@ export const useSimulationStore = create<SimulationState>((set, get) => ({
   daySpeed: 30,
   accumulator: 0,
   animateWithinDay: false,
+  stopAtDay: null,
   isPlaying: false,
   lastUpdateTimestamp: Date.now(),
   location: PRESET_LOCATIONS['Equator'],
@@ -105,18 +107,29 @@ export const useSimulationStore = create<SimulationState>((set, get) => ({
 
   // Actions
   play: () => {
-    set({ isPlaying: true, accumulator: 0, lastUpdateTimestamp: Date.now() });
+    set({ isPlaying: true, accumulator: 0, stopAtDay: null, lastUpdateTimestamp: Date.now() });
   },
 
   pause: () => {
-    set({ isPlaying: false });
+    set({ isPlaying: false, stopAtDay: null });
   },
 
   stepForward: () => {
-    set((state) => ({
-      dayCount: state.dayCount + 1,
-      isPlaying: false,
-    }));
+    const state = get();
+    if (state.animateWithinDay) {
+      // Animate through one full day then stop
+      set({
+        stopAtDay: state.dayCount + 1,
+        accumulator: 0,
+        isPlaying: true,
+        lastUpdateTimestamp: Date.now(),
+      });
+    } else {
+      set({
+        dayCount: state.dayCount + 1,
+        isPlaying: false,
+      });
+    }
   },
 
   setTimeOfDay: (time: number) => {
@@ -143,8 +156,22 @@ export const useSimulationStore = create<SimulationState>((set, get) => ({
     const wholeDays = Math.floor(newAccumulator);
 
     if (wholeDays > 0) {
+      const newDayCount = state.dayCount + wholeDays;
+
+      // Auto-pause if we've reached the stop target
+      if (state.stopAtDay !== null && newDayCount >= state.stopAtDay) {
+        set({
+          dayCount: state.stopAtDay,
+          accumulator: 0,
+          isPlaying: false,
+          stopAtDay: null,
+          lastUpdateTimestamp: now,
+        });
+        return;
+      }
+
       set({
-        dayCount: state.dayCount + wholeDays,
+        dayCount: newDayCount,
         accumulator: newAccumulator - wholeDays,
         lastUpdateTimestamp: now,
       });
@@ -167,7 +194,7 @@ export const useSimulationStore = create<SimulationState>((set, get) => ({
   },
 
   setAnimateWithinDay: (value: boolean) => {
-    set({ animateWithinDay: value });
+    set({ animateWithinDay: value, accumulator: 0 });
   },
 
   setLocation: (lat: number, lon: number, name: string) => {
