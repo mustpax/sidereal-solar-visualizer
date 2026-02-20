@@ -10,9 +10,9 @@ const LOCATION_PIN_LENGTH = 8;
 
 export function OrbitalView() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const { dayCount, timeOfDay, stepMode, options } = useSimulationStore();
+  const { dayCount, timeOfDay, stepMode, accumulator, animateWithinDay, options } = useSimulationStore();
 
-  const effectiveTime = getEffectiveTime(dayCount, timeOfDay, stepMode);
+  const effectiveTime = getEffectiveTime(dayCount, timeOfDay, stepMode, accumulator, animateWithinDay);
 
   useEffect(() => {
     const canvas = canvasRef.current;

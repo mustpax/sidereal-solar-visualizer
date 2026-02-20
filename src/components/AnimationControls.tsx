@@ -13,6 +13,8 @@ export function AnimationControls() {
     daySpeed,
     setDaySpeed,
     dayCount,
+    animateWithinDay,
+    setAnimateWithinDay,
   } = useSimulationStore();
 
   // Calculate drift: difference between solar and sidereal elapsed time
@@ -64,6 +66,18 @@ export function AnimationControls() {
             {speed}
           </button>
         ))}
+      </div>
+
+      {/* Intra-day animation toggle */}
+      <div className="control-row">
+        <label>
+          <input
+            type="checkbox"
+            checked={animateWithinDay}
+            onChange={(e) => setAnimateWithinDay(e.target.checked)}
+          />
+          Animate within day
+        </label>
       </div>
 
       {/* Info display */}

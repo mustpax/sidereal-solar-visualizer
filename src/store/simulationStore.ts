@@ -28,6 +28,7 @@ interface SimulationState {
   stepMode: StepMode; // solar or sidereal stepping
   daySpeed: DaySpeed; // days per real second
   accumulator: number; // fractional day accumulator for smooth stepping
+  animateWithinDay: boolean; // show intra-day rotation frames
   isPlaying: boolean;
   lastUpdateTimestamp: number;
 
@@ -46,6 +47,7 @@ interface SimulationState {
   setDaySpeed: (speed: DaySpeed) => void;
   tick: () => void;
   reset: () => void;
+  setAnimateWithinDay: (value: boolean) => void;
   setLocation: (lat: number, lon: number, name: string) => void;
   updateOptions: (options: Partial<VisualOptions>) => void;
 }
@@ -71,10 +73,20 @@ const DEFAULT_OPTIONS: VisualOptions = {
 /**
  * Compute effective simulation time from dayCount, timeOfDay, and stepMode.
  * Each animation frame shows the same moment (timeOfDay) one day later.
- * The step size is either a solar day or sidereal day.
+ * When animateWithinDay is true, the accumulator fraction is used to show
+ * smooth intra-day rotation instead of snapping between whole days.
  */
-export function getEffectiveTime(dayCount: number, timeOfDay: number, stepMode: StepMode): number {
+export function getEffectiveTime(
+  dayCount: number,
+  timeOfDay: number,
+  stepMode: StepMode,
+  accumulator = 0,
+  animateWithinDay = false,
+): number {
   const stepSize = stepMode === 'solar' ? SOLAR_DAY_SECONDS : SIDEREAL_DAY_SECONDS;
+  if (animateWithinDay) {
+    return (dayCount + accumulator) * stepSize + timeOfDay;
+  }
   return dayCount * stepSize + timeOfDay;
 }
 
@@ -85,6 +97,7 @@ export const useSimulationStore = create<SimulationState>((set, get) => ({
   stepMode: 'solar',
   daySpeed: 30,
   accumulator: 0,
+  animateWithinDay: false,
   isPlaying: false,
   lastUpdateTimestamp: Date.now(),
   location: PRESET_LOCATIONS['Equator'],
@@ -151,6 +164,10 @@ export const useSimulationStore = create<SimulationState>((set, get) => ({
       isPlaying: false,
       lastUpdateTimestamp: Date.now(),
     });
+  },
+
+  setAnimateWithinDay: (value: boolean) => {
+    set({ animateWithinDay: value });
   },
 
   setLocation: (lat: number, lon: number, name: string) => {
