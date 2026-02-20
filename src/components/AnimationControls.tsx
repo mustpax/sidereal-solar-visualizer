@@ -7,6 +7,7 @@ export function AnimationControls() {
     play,
     pause,
     reset,
+    stepForward,
     stepMode,
     setStepMode,
     daySpeed,
@@ -42,14 +43,13 @@ export function AnimationControls() {
         </div>
       </div>
 
-      {/* Play / Pause / Reset */}
-      <div className="control-row">
-        <button onClick={isPlaying ? pause : play} className="play-button">
+      {/* Play / Pause / Reset / Step */}
+      <div className="control-row playback-row">
+        <button onClick={isPlaying ? pause : play}>
           {isPlaying ? '⏸ Pause' : '▶ Play'}
         </button>
-        <button onClick={reset} className="reset-button">
-          ⏹ Reset
-        </button>
+        <button onClick={reset}>⏹ Reset</button>
+        <button onClick={stepForward}>+1 Day</button>
       </div>
 
       {/* Speed presets */}

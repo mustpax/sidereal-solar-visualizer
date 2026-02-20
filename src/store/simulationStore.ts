@@ -40,6 +40,7 @@ interface SimulationState {
   // Actions
   play: () => void;
   pause: () => void;
+  stepForward: () => void;
   setTimeOfDay: (time: number) => void;
   setStepMode: (mode: StepMode) => void;
   setDaySpeed: (speed: DaySpeed) => void;
@@ -96,6 +97,13 @@ export const useSimulationStore = create<SimulationState>((set, get) => ({
 
   pause: () => {
     set({ isPlaying: false });
+  },
+
+  stepForward: () => {
+    set((state) => ({
+      dayCount: state.dayCount + 1,
+      isPlaying: false,
+    }));
   },
 
   setTimeOfDay: (time: number) => {

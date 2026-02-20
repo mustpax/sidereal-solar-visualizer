@@ -236,9 +236,14 @@ button.active {
   color: #000000;
 }
 
-.play-button,
-.reset-button {
-  margin-right: 10px;
+.playback-row {
+  display: flex;
+  gap: 6px;
+}
+
+.playback-row button {
+  flex: 1;
+  padding: 8px 6px;
 }
 
 .speed-controls {
@@ -405,9 +410,9 @@ footer {
 }
 
 .app.embed .view-wrapper canvas {
-  width: calc(100vh - 40px);
-  height: calc(100vh - 40px);
-  max-width: 100%;
+  width: min(calc(100vh - 40px), 100%);
+  height: min(calc(100vh - 40px), 100%);
+  aspect-ratio: 1;
 }
 
 .app.embed .view-wrapper h2,
